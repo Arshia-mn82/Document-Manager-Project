@@ -47,3 +47,34 @@ class FileDownloadView(APIView):
         file = get_object_or_404(TextFile, pk=pk, user=request.user)
         response = FileResponse(file.file.open("rb"))
         return response
+
+
+class FileDownloadView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk):
+        file = get_object_or_404(TextFile, pk=pk, user=request.user)
+        response = FileResponse(file.file.open("rb"))
+        return response
+
+
+class FileEditView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def put(self, request, pk):
+        file = get_object_or_404(TextFile, pk=pk, user=request.user)
+        file_serializer = TextFileSerializer(file, data=request.data, partial=True)
+        if file_serializer.is_valid():
+            file_serializer.save()
+            return Response(file_serializer.data, status=status.HTTP_200_OK)
+        return Response(file_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class FileDeleteView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request, pk):
+        file = get_object_or_404(TextFile, pk=pk, user=request.user)
+        file.file.delete()
+        file.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
